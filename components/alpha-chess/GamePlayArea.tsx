@@ -41,7 +41,7 @@ export function GamePlayArea({
     dimensions.width < 900 || dimensions.height < 700;
 
   return (
-    <div className="flex min-h-[520px] flex-1 items-center justify-center px-3 py-5">
+    <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto overscroll-contain px-3 py-5">
       <div className="flex max-w-full flex-col items-center gap-4">
         <p
           className={`line-clamp-2 text-center text-white/55 ${compact ? "text-sm" : "text-base"}`}

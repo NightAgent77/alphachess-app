@@ -55,7 +55,7 @@ export function FriendsPanel() {
   }
 
   return (
-    <div className="flex max-h-full flex-1 flex-col overflow-hidden rounded-[18px] border border-white/[0.08] bg-white/[0.04] p-6">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/[0.08] bg-white/[0.04] p-6">
       <header className="mb-6 shrink-0">
         <div className="flex items-center gap-3">
           <span className="text-2xl font-semibold text-white/95">
@@ -96,7 +96,7 @@ export function FriendsPanel() {
               className="w-full rounded-xl border border-white/[0.08] bg-white/[0.06] py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-500/40"
             />
           </div>
-          <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+          <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain pr-1">
             {filtered.map((a) => (
               <li
                 key={a.id}
@@ -125,7 +125,7 @@ export function FriendsPanel() {
           </ul>
         </>
       ) : (
-        <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+        <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain">
           {friends.length === 0 ? (
             <p className="text-sm text-white/40">No friends yet.</p>
           ) : (

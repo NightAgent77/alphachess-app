@@ -33,8 +33,8 @@ export function StatsPanel() {
   );
 
   return (
-    <div className="flex max-h-full flex-1 flex-col overflow-y-auto rounded-[18px] border border-white/[0.08] bg-white/[0.04] p-6">
-      <header className="mb-6">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/[0.08] bg-white/[0.04]">
+      <header className="shrink-0 border-b border-white/[0.06] px-6 pb-4 pt-6">
         <h2 className="text-[26px] font-bold text-white/94">Statistics</h2>
         <p className="mt-2 text-sm text-white/48">
           Rating trajectory, results, and repertoire — styled like your board
@@ -42,6 +42,7 @@ export function StatsPanel() {
         </p>
       </header>
 
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
       <div className="mb-4 rounded-2xl border border-white/[0.06] bg-[rgb(21,25,33)] p-5">
         <p className="text-sm font-semibold text-white/55">ELO rating</p>
         <div className="mt-2 flex flex-wrap items-baseline gap-2">
@@ -158,6 +159,7 @@ export function StatsPanel() {
       <p className="text-xs font-medium text-white/38">
         Demo statistics — connect recorded games for live ELO and charts.
       </p>
+      </div>
     </div>
   );
 }

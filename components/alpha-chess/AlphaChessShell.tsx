@@ -123,18 +123,18 @@ export function AlphaChessShell() {
     return () => clearTimeout(t);
   }, [drawPhase, offerDrawAndAccept]);
 
-  const sidebarW = sidebarOpen ? 316.8 : 158.4;
+  const sidebarW = sidebarOpen ? 316.8 : 180;
 
   return (
     <div
-      className="relative flex min-h-screen overflow-hidden text-white"
+      className="relative flex min-h-0 flex-1 overflow-hidden text-white"
       style={{
         background:
           "linear-gradient(145deg, rgb(20,23,31), rgb(10,13,18))",
       }}
     >
       <aside
-        className="relative flex shrink-0 flex-col gap-3 pt-10 shadow-[4px_0_14px_rgba(0,0,0,0.35)]"
+        className="relative flex min-h-0 shrink-0 flex-col gap-3 self-stretch overflow-hidden pt-10 shadow-[4px_0_14px_rgba(0,0,0,0.35)]"
         style={{
           width: sidebarW,
           background:
@@ -143,19 +143,33 @@ export function AlphaChessShell() {
         }}
       >
         <div
-          className="rounded-r-[14px] px-5"
+          className={
+            sidebarOpen
+              ? "rounded-r-[14px] px-5"
+              : "flex flex-col items-center justify-center px-2 pb-1"
+          }
           style={{
             boxShadow: "inset -1px 0 0 rgba(34,211,238,0.25)",
           }}
         >
-          <div className={sidebarOpen ? "h-[58px] w-full" : "h-14 w-full"}>
+          <div
+            className={
+              sidebarOpen
+                ? "h-[58px] w-full"
+                : "flex h-[76px] w-full items-center justify-center"
+            }
+          >
             <Image
               src="/alpha-chess-logo.svg"
               alt="Alpha Chess"
               width={280}
               height={67}
               unoptimized
-              className="h-full w-auto max-w-full object-contain object-left"
+              className={
+                sidebarOpen
+                  ? "h-full w-auto max-w-full object-contain object-left"
+                  : "mx-auto h-[68px] w-auto max-w-[158px] object-contain object-center"
+              }
               priority
             />
           </div>
@@ -164,7 +178,7 @@ export function AlphaChessShell() {
           )}
         </div>
 
-        <nav className="flex flex-col gap-2.5 px-4">
+        <nav className="flex flex-col gap-1.5 px-0">
           <NavRow
             label="Game"
             icon="▦"
@@ -188,11 +202,17 @@ export function AlphaChessShell() {
           />
         </nav>
 
-        <div className="mt-auto flex items-center gap-2 px-4 pb-4">
+        <div
+          className={`mt-auto flex w-full shrink-0 items-center gap-2 border-t border-white/[0.06] pb-4 pt-3 ${
+            sidebarOpen ? "px-3" : "justify-center px-2"
+          }`}
+        >
           <button
             type="button"
             onClick={() => setPanel("profile")}
-            className="flex flex-1 items-center gap-2 rounded-xl py-1 transition hover:bg-white/[0.06]"
+            className={`flex items-center gap-2 rounded-xl py-1 transition hover:bg-white/[0.06] ${
+              sidebarOpen ? "min-w-0 flex-1" : ""
+            }`}
           >
             <span
               className="flex h-9 w-9 items-center justify-center rounded-full border text-sm"
@@ -233,32 +253,34 @@ export function AlphaChessShell() {
 
       <div
         ref={mainRef}
-        className="relative flex min-h-0 flex-1 flex-col pl-10 pr-7 pt-4"
+        className="relative flex min-h-0 flex-1 flex-col overflow-hidden pl-10 pr-7 pt-4 pb-4"
       >
-        {panel === "game" && (
-          <GamePlayArea
-            dimensions={dims}
-            onNewGame={openNewGameSetup}
-            onResign={() => {
-              setResignPhase("confirm");
-              setResignOpen(true);
-            }}
-            onOfferDraw={() => {
-              setDrawPhase("compose");
-              setDrawOpen(true);
-            }}
-          />
-        )}
-        {panel === "friends" && <FriendsPanel />}
-        {panel === "stats" && <StatsPanel />}
-        {panel === "profile" && (
-          <ProfilePanel
-            session={profileSession}
-            onSessionChange={setProfileSession}
-            onSignIn={() => setAuthKind("signIn")}
-            onSignUp={() => setAuthKind("signUp")}
-          />
-        )}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {panel === "game" && (
+            <GamePlayArea
+              dimensions={dims}
+              onNewGame={openNewGameSetup}
+              onResign={() => {
+                setResignPhase("confirm");
+                setResignOpen(true);
+              }}
+              onOfferDraw={() => {
+                setDrawPhase("compose");
+                setDrawOpen(true);
+              }}
+            />
+          )}
+          {panel === "friends" && <FriendsPanel />}
+          {panel === "stats" && <StatsPanel />}
+          {panel === "profile" && (
+            <ProfilePanel
+              session={profileSession}
+              onSessionChange={setProfileSession}
+              onSignIn={() => setAuthKind("signIn")}
+              onSignUp={() => setAuthKind("signUp")}
+            />
+          )}
+        </div>
       </div>
 
       <p className="pointer-events-none absolute bottom-2 right-3 text-[9.5px] font-medium tracking-wide text-white/36">
@@ -846,31 +868,45 @@ function NavRow({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex w-full items-center gap-2 rounded-none py-2.5 pl-0 pr-3 text-left transition hover:bg-white/[0.04]"
+      className="relative z-0 w-full rounded-none py-3 pr-0 text-left transition hover:bg-white/[0.04]"
       style={{
         background: selected ? ROW_HI : undefined,
       }}
     >
       {selected && (
         <span
-          className="absolute bottom-0 left-0 top-0 w-[4.6px]"
-          style={{ background: NAV_ACCENT }}
+          className="absolute bottom-0 left-0 top-0 z-10 w-1"
+          style={{
+            background: NAV_ACCENT,
+            boxShadow: "2px 0 10px rgba(48,122,224,0.35)",
+          }}
+          aria-hidden
         />
       )}
       <span
-        className="flex w-10 justify-center text-lg"
-        style={{ color: selected ? NAV_ACCENT : "rgba(255,255,255,0.92)" }}
+        className={`relative z-[1] flex items-center gap-3 ${
+          expanded
+            ? "min-w-0 pl-[14px] pr-3"
+            : "min-w-0 justify-center px-2"
+        }`}
       >
-        {icon}
-      </span>
-      {expanded && (
         <span
-          className="text-[15px] font-semibold"
+          className={`flex shrink-0 items-center justify-center leading-none ${
+            expanded ? "min-w-[2.25rem] text-[1.35rem]" : "text-[1.95rem]"
+          }`}
           style={{ color: selected ? NAV_ACCENT : "rgba(255,255,255,0.92)" }}
         >
-          {label}
+          {icon}
         </span>
-      )}
+        {expanded && (
+          <span
+            className="min-w-0 truncate text-[15px] font-semibold"
+            style={{ color: selected ? NAV_ACCENT : "rgba(255,255,255,0.92)" }}
+          >
+            {label}
+          </span>
+        )}
+      </span>
     </button>
   );
 }

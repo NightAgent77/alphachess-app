@@ -23,8 +23,8 @@ export function ProfilePanel({
           : "Profile reserved (demo). Finish setup when email or OAuth flows are wired in.";
 
   return (
-    <div className="flex max-h-full flex-1 flex-col overflow-y-auto rounded-[18px] border border-white/[0.08] bg-white/[0.04] p-7">
-      <header className="mb-6 flex items-start gap-3">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/[0.08] bg-white/[0.04]">
+      <header className="flex shrink-0 items-start gap-3 border-b border-white/[0.06] px-7 pb-4 pt-7">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[rgb(77,122,224)]/40 to-cyan-500/25">
           <span className="text-xl text-white/95">👤</span>
         </div>
@@ -34,6 +34,7 @@ export function ProfilePanel({
         </div>
       </header>
 
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-7 py-6">
       {session === "unsigned" && (
         <div>
           <p className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-white/45">
@@ -101,6 +102,7 @@ export function ProfilePanel({
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 }
