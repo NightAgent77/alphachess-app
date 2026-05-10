@@ -10,25 +10,29 @@ const ACCENT = {
   selection: "rgba(34, 211, 238, 0.9)",
   legal: "rgba(239, 68, 68, 0.85)",
   captureFill: "rgba(239, 68, 68, 0.22)",
-  lastWhite: "rgba(239, 68, 68, 0.95)",
-  lastBlack: "rgba(59, 130, 246, 0.95)",
 };
+
+const GRID_EDGE = "rgba(118, 126, 142, 0.45)";
 
 function PieceGlyph({
   symbol,
   isWhite,
   size,
+  motionClassName,
 }: {
   symbol: string;
   isWhite: boolean;
   size: number;
+  motionClassName?: string;
 }) {
   const glow = isWhite ? "rgba(255,255,255,0.38)" : "rgba(34,211,238,0.26)";
   const baseTop = isWhite ? "rgb(237, 242, 247)" : "rgb(69, 77, 92)";
   const baseBottom = isWhite ? "rgb(194, 201, 215)" : "rgb(31, 36, 46)";
   const diam = size * 0.72;
   return (
-    <div className="relative flex items-center justify-center">
+    <div
+      className={`relative flex items-center justify-center ${motionClassName ?? ""}`}
+    >
       <div
         className="flex items-center justify-center rounded-full"
         style={{
@@ -53,24 +57,13 @@ function PieceGlyph({
   );
 }
 
-function gridInsetShadow(row: number, col: number): string | undefined {
-  const lw = 0.65;
-  const c = "rgba(255,255,255,0.12)";
-  const parts: string[] = [];
-  if (row === 0) parts.push(`inset 0 ${lw}px 0 0 ${c}`);
-  if (col === 0) parts.push(`inset ${lw}px 0 0 0 ${c}`);
-  if (row === 7) parts.push(`inset 0 -${lw}px 0 0 ${c}`);
-  if (col === 7) parts.push(`inset -${lw}px 0 0 0 ${c}`);
-  return parts.length ? parts.join(", ") : undefined;
-}
-
 export function AlphaChessBoard({ boardPx }: { boardPx: number }) {
   const fen = useAlphaChessStore((s) => s.fen);
   const playerSide = useAlphaChessStore((s) => s.playerSide);
   const selectedSquare = useAlphaChessStore((s) => s.selectedSquare);
   const legalTargets = useAlphaChessStore((s) => s.legalTargets);
   const captureTargets = useAlphaChessStore((s) => s.captureTargets);
-  const lastMove = useAlphaChessStore((s) => s.lastMove);
+  const moveAnim = useAlphaChessStore((s) => s.moveAnim);
   const tapSquare = useAlphaChessStore((s) => s.tapSquare);
 
   const board = useMemo(() => new Chess(fen).board(), [fen]);
@@ -108,27 +101,28 @@ export function AlphaChessBoard({ boardPx }: { boardPx: number }) {
             const isLegal = legalTargets.includes(algebraic);
             const isCap = captureTargets.includes(algebraic);
 
-            let lastStroke: string | undefined;
-            if (
-              lastMove &&
-              (algebraic === lastMove.from || algebraic === lastMove.to)
-            ) {
-              lastStroke =
-                lastMove.color === "w" ? ACCENT.lastWhite : ACCENT.lastBlack;
+            let motionClass: string | undefined;
+            if (moveAnim?.phase === "out" && algebraic === moveAnim.from) {
+              motionClass = "ac-piece-out";
+            } else if (moveAnim?.phase === "in" && algebraic === moveAnim.to) {
+              motionClass = "ac-piece-in";
             }
 
             return (
               <button
                 key={displayCol}
                 type="button"
-                className="relative flex items-center justify-center border-0 p-0 outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+                className="relative box-border flex items-center justify-center border-0 p-0 outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
                 style={{
                   width: sq,
                   height: sq,
                   background: isLight
                     ? "rgba(255,255,255,0.03)"
                     : "rgba(0,0,0,0.13)",
-                  boxShadow: gridInsetShadow(displayRow, displayCol),
+                  borderRight:
+                    displayCol < 7 ? `1px solid ${GRID_EDGE}` : undefined,
+                  borderBottom:
+                    displayRow < 7 ? `1px solid ${GRID_EDGE}` : undefined,
                 }}
                 onClick={() => tapSquare(displayRow, displayCol)}
               >
@@ -153,20 +147,12 @@ export function AlphaChessBoard({ boardPx }: { boardPx: number }) {
                     style={{ borderColor: ACCENT.selection }}
                   />
                 )}
-                {lastStroke && (
-                  <span
-                    className="pointer-events-none absolute inset-[3px] rounded-md border-2"
-                    style={{
-                      borderColor: lastStroke,
-                      boxShadow: `0 0 10px ${lastStroke}`,
-                    }}
-                  />
-                )}
                 {cell && (
                   <PieceGlyph
                     symbol={symbolForPiece(cell.type, cell.color)}
                     isWhite={cell.color === "w"}
                     size={sq}
+                    motionClassName={motionClass}
                   />
                 )}
               </button>

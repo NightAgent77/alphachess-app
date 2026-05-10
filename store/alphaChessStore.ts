@@ -4,11 +4,19 @@ import { symbolForPiece } from "@/lib/pieceSymbols";
 
 export type PlayerSide = "white" | "black";
 
-export type LastMoveHighlight = {
-  from: Square;
-  to: Square;
-  color: "w" | "b";
-};
+/** Shrink-at-from, then grow-at-to (matches desktop feel). */
+export type PieceMoveAnim =
+  | {
+      phase: "out";
+      from: Square;
+      to: Square;
+      moving: { symbol: string; isWhite: boolean };
+    }
+  | {
+      phase: "in";
+      to: Square;
+      moving: { symbol: string; isWhite: boolean };
+    };
 
 let engine = new Chess();
 
@@ -79,7 +87,8 @@ export type AlphaChessState = {
   /** Set when player resigns (winner side). */
   resignWinner: "white" | "black" | null;
   status: string;
-  lastMove: LastMoveHighlight | null;
+  /** One-move piece animation; clears after playing (no sticky last-move highlights). */
+  moveAnim: PieceMoveAnim | null;
   halfMoveCount: number;
 
   reset: () => void;
@@ -102,7 +111,7 @@ export const useAlphaChessStore = create<AlphaChessState>((set, get) => ({
   checkmateWinner: null,
   resignWinner: null,
   status: turnStatusText(engine, "white", []),
-  lastMove: null,
+  moveAnim: null,
   halfMoveCount: 0,
 
   approximateReportedMoveNumber: () => {
@@ -129,7 +138,7 @@ export const useAlphaChessStore = create<AlphaChessState>((set, get) => ({
       gameOver: false,
       checkmateWinner: null,
       resignWinner: null,
-      lastMove: null,
+      moveAnim: null,
       halfMoveCount: 0,
       status,
     });
@@ -165,19 +174,19 @@ export const useAlphaChessStore = create<AlphaChessState>((set, get) => ({
   },
 
   tapSquare: (displayRow, displayCol) => {
-    const { gameOver, playerSide, selectedSquare } = get();
-    if (gameOver) return;
+    const { gameOver, playerSide, selectedSquare, moveAnim } = get();
+    if (gameOver || moveAnim) return;
 
     const chess = engine;
     const tapped = displayToSquare(displayRow, displayCol, playerSide);
     const tappedPiece = chess.get(tapped);
 
     const tryMove = (from: Square, to: Square) => {
-      const clone = new Chess(chess.fen());
+      const prevFen = engine.fen();
+      const clone = new Chess(prevFen);
       const move = clone.move({ from, to, promotion: "q" });
       if (!move) return false;
 
-      engine = clone;
       const wc = [...get().whiteCaptured];
       const bc = [...get().blackCaptured];
       if (move.captured) {
@@ -187,29 +196,81 @@ export const useAlphaChessStore = create<AlphaChessState>((set, get) => ({
         else bc.push(sym);
       }
 
-      const gameOverNow = engine.isGameOver();
+      const gameOverNow = clone.isGameOver();
 
       let checkmateWinner: "white" | "black" | null = null;
-      if (engine.isCheckmate()) {
-        checkmateWinner = engine.turn() === "w" ? "black" : "white";
+      if (clone.isCheckmate()) {
+        checkmateWinner = clone.turn() === "w" ? "black" : "white";
       }
 
-      const halfMoveCount = engine.history().length;
+      const halfMoveCount = clone.history().length;
+      const status = buildStatusAfterMove(clone, playerSide, move);
+
+      const sym = symbolForPiece(move.piece, move.color);
+      const isWhite = move.color === "w";
+      const moving = { symbol: sym, isWhite };
+
+      const reduceMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduceMotion) {
+        engine = clone;
+        set({
+          fen: engine.fen(),
+          whiteCaptured: wc,
+          blackCaptured: bc,
+          selectedSquare: null,
+          legalTargets: [],
+          captureTargets: [],
+          gameOver: gameOverNow,
+          checkmateWinner,
+          resignWinner: null,
+          moveAnim: null,
+          halfMoveCount,
+          status,
+        });
+        return true;
+      }
+
+      const SHRINK_MS = 95;
+      const GROW_MS = 120;
 
       set({
-        fen: engine.fen(),
-        whiteCaptured: wc,
-        blackCaptured: bc,
+        fen: prevFen,
+        moveAnim: {
+          phase: "out",
+          from: move.from,
+          to: move.to,
+          moving,
+        },
         selectedSquare: null,
         legalTargets: [],
         captureTargets: [],
-        gameOver: gameOverNow,
-        checkmateWinner,
-        resignWinner: null,
-        lastMove: { from: move.from, to: move.to, color: move.color },
-        halfMoveCount,
-        status: buildStatusAfterMove(engine, playerSide, move),
       });
+
+      window.setTimeout(() => {
+        engine = clone;
+        set({
+          fen: clone.fen(),
+          whiteCaptured: wc,
+          blackCaptured: bc,
+          gameOver: gameOverNow,
+          checkmateWinner,
+          resignWinner: null,
+          moveAnim: {
+            phase: "in",
+            to: move.to,
+            moving,
+          },
+          halfMoveCount,
+          status,
+        });
+        window.setTimeout(() => {
+          set({ moveAnim: null });
+        }, GROW_MS);
+      }, SHRINK_MS);
+
       return true;
     };
 
