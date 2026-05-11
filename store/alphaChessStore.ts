@@ -233,8 +233,8 @@ export const useAlphaChessStore = create<AlphaChessState>((set, get) => ({
         return true;
       }
 
-      const SHRINK_MS = 95;
-      const GROW_MS = 120;
+      const SHRINK_MS = 45;
+      const GROW_MS = 65;
 
       set({
         fen: prevFen,

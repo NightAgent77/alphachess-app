@@ -48,11 +48,11 @@ body {
 }
 .ac-piece-out {
   transform-origin: center;
-  animation: ac-piece-out 95ms ease-in forwards;
+  animation: ac-piece-out 45ms ease-in forwards;
 }
 .ac-piece-in {
   transform-origin: center;
-  animation: ac-piece-in 120ms ease-out forwards;
+  animation: ac-piece-in 65ms ease-out forwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .ac-piece-out,
